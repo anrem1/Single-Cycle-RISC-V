@@ -6,4 +6,10 @@ always @ (posedge clk) begin
 if(MemWrite == 1) 
 mem[addr] = data_in;
 end
+
+initial begin 
+mem[0]=32'd17;
+mem[1]=32'd9;
+mem[2]=32'd25;
+end
 endmodule
