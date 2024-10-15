@@ -12,7 +12,7 @@ input wsig, input clk, input rst, input [4:0] radd1 , input [4:0] radd2, input [
     if(rst == 0) begin
   
 
-    if(wsig == 1) 
+    if(wsig == 1 & wadd != 0 ) 
     register[wadd] = wdata;
     
     end

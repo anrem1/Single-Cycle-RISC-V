@@ -1,6 +1,6 @@
 
 
-module main(input rst, input clk);
+module main(input rst, input clk, input [1:0] ledSel, input [3:0] ssdSel, output reg [15:0] led, output reg [12:0] ssd );
 // divide by 4??? for inst mem
 //wire [31: 0] data_out;
 wire [31:0] instr;
@@ -60,6 +60,26 @@ assign temp_pc = pc_out + 4;
   assign jump = (branch & zero);
   nmux2x1#(32) pc_mux(jump, temp_pc, temp_pc2, result_pc);
  
-   // put result of mux back in pc (up)
-//  assign pc = result_pc;
+ always @ (*) begin
+case(ledSel)
+2'b00 : led = instr [15:0];
+2'b01: led = instr [31:16];
+2'b10: led = {2'b0, aluop, alusel, zero, jump, branch, mr, mtoreg, mwrite, alusrc, regwr };       // rest of ctrl, in what order?
+endcase
+case(ssdSel) 
+4'b0000: ssd = pc_out [12:0];   // pc output
+4'b0001: ssd = temp_pc [12:0];  // pc+4
+4'b0010: ssd = temp_pc2 [12:0]; // branch target add output?
+4'b0011: ssd = result_pc [12:0];    // pc input
+4'b0100: ssd = rdata1 [12:0];       // data read reg file rs1
+4'b0101: ssd = rdata2 [12:0];       // data read reg file rs2
+4'b0110: ssd = data_mux_out [12:0]; // data input to reg file rs2
+4'b0111: ssd = imm_out [12:0];  //imm gen out
+4'b1000: ssd = shift_out [12:0];    // shift left out
+4'b1001: ssd = B [12:0];        // output of alu 2nd source mux
+4'b1010: ssd = alures [12:0];       // output of alu
+4'b1011: ssd = data_mem_out [12:0]; // memory output
+endcase
+
+end
 endmodule
