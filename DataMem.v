@@ -8,8 +8,12 @@ mem[addr] = data_in;
 end
 
 initial begin 
-mem[0]=32'd17;
-mem[1]=32'd9;
-mem[2]=32'd25;
+//mem[0]=32'd17;
+//mem[1]=32'd9;
+//mem[2]=32'd25;
+
+mem[0]=32'd30;
+mem[1]=32'd25;
+mem[2]=32'd5;
 end
 endmodule
