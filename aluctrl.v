@@ -8,7 +8,7 @@ module aluctrl(input [1:0] aluop, input [2:0] inst, input in, output reg [3:0] a
     6'b100001: alusel = 4'b0110;
     6'b101110: alusel = 4'b0000;
     6'b101100: alusel = 4'b0001;
-    
+    6'b10111z: alusel = 4'b0011;     // auipc
     endcase
     end
 endmodule

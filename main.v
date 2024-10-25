@@ -6,11 +6,13 @@ module main(input rst, input clk, input [1:0] ledSel, input [3:0] ssdSel, output
 wire [31:0] instr;
 wire [31:0] pc_out;
 wire [31:0] imm_out;
-wire branch, mr, mtoreg, mwrite, alusrc, regwr; // reg?
+wire branch, mr, mwrite, alusrc, alusrc2, regwr; // reg?
+wire [1:0] mtoreg;  // make this two bits for the 3x1 mux 
 wire [1:0] aluop; // reg?
 wire [31:0] rdata1, rdata2;
 
 wire [31:0] B;   // inputs to ALU
+wire [31:0] A;  // input to ALU (bw pc and reg)
 wire [3:0] alusel;
 wire [31:0] alures; // reg?
 wire zero;  // reg?
@@ -26,7 +28,7 @@ wire load = 1; // for pc reg
 
 nreg #32 PC(result_pc, pc_out, load, rst, clk);
 InstMem inst(.addr(pc_out[7:2]), .data_out(instr));
-control ctrl( instr[6:2],  branch, mr, mtoreg, mwrite, alusrc, regwr, aluop);
+control ctrl( instr[6:2],  branch, mr, mwrite, alusrc, alusrc2, regwr, aluop, mtoreg);    // added alusrc2 for 2nd mux 
 
 // put in reg file (what to put in write data?)
  regfile regs( .wsig(regwr) ,  .clk(clk),  .rst(rst), .radd1(instr[19:15]) , .radd2(instr[24:20]), .wadd(instr[11:7]), 
@@ -38,16 +40,21 @@ control ctrl( instr[6:2],  branch, mr, mtoreg, mwrite, alusrc, regwr, aluop);
   // put in mux after regfile (32 input?) (make sure order is correct)
   nmux2x1#(32) mux_reg(alusrc, rdata2 , imm_out, B);
   
+  // ** put in second added mux for pc and reg
+  mux2x1#(32) mux_gets_pc(alusrc2, pc_out , rdata1, A);     // added alusrc2 as selection
+
+
   // inst input should be [14:12] and 30?
   aluctrl aluctrl(aluop, instr[14:12], instr[30], alusel );
   // need to get data from 1st reg in reg file into A
-  alu #(32) aluinst(rdata1,  B, alusel, alures, zero);
+  alu #(32) aluinst(A,  B, alusel, alures, zero);
   
   // put in data mem, divide by 4?
   DataMem data_mem( clk, mr , mwrite, alures[7:2], rdata2, data_mem_out);
   
-  // put in mux 
-   nmux2x1#(32) nmux_inst(mtoreg, alures, data_mem_out, data_mux_out);
+  // 3x1 MUX after data mem
+  mux4x1 #(32) ( mtoreg, temp_pc, alures, data_mem_out, 32'bX,  data_mux_out);
+  //  nmux2x1#(32) nmux_inst(mtoreg, alures, data_mem_out, data_mux_out);
    
    // write data to registers how? regfile inst again? or always block?
    // 32 bits for left shift?
@@ -64,7 +71,7 @@ assign temp_pc = pc_out + 4;
 case(ledSel)
 2'b00 : led = instr [15:0];
 2'b01: led = instr [31:16];
-2'b10: led = {2'b0, aluop, alusel, zero, jump, branch, mr, mtoreg, mwrite, alusrc, regwr };       // rest of ctrl, in what order?
+2'b10: led = {2'b0, aluop, alusel, zero, jump, branch, mr, mtoreg, mwrite, alusrc, alusrc2, regwr };     //  mtoreg is now 2 bits, no longer 14? bits + alusrc2
 endcase
 case(ssdSel) 
 4'b0000: ssd = pc_out [12:0];   // pc output
