@@ -25,9 +25,14 @@ wire overflow;          // for adder after shift
 wire jump;              // to jump after branch or not
 wire [31:0] result_pc;
 wire load = 1; // for pc reg
+wire cf, zf, vf, sf;
+wire [4:0] shamt;
+wire branch_taken;
 
 nreg #32 PC(result_pc, pc_out, load, rst, clk);
+
 InstMem inst(.addr(pc_out[7:2]), .data_out(instr));
+
 control ctrl( instr[6:2],  branch, mr, mwrite, alusrc, alusrc2, regwr, aluop, mtoreg);    // added alusrc2 for 2nd mux 
 
 // put in reg file (what to put in write data?)
@@ -46,8 +51,10 @@ control ctrl( instr[6:2],  branch, mr, mwrite, alusrc, alusrc2, regwr, aluop, mt
 
   // inst input should be [14:12] and 30?
   aluctrl aluctrl(aluop, instr[14:12], instr[30], alusel );
+  
   // need to get data from 1st reg in reg file into A
-  alu #(32) aluinst(A,  B, alusel, alures, zero);
+  alu #(32) aluinst(A,  B, alusel, alures, /*zero,*/ cf, zf, vf, sf,
+    inst[24:20], inst[15:13], branch_taken);
   
   // put in data mem, divide by 4?
   DataMem data_mem( clk, mr , mwrite, alures[7:2], rdata2, data_mem_out);
@@ -56,17 +63,23 @@ control ctrl( instr[6:2],  branch, mr, mwrite, alusrc, alusrc2, regwr, aluop, mt
   mux4x1 #(32) ( mtoreg, temp_pc, alures, data_mem_out, 32'bX,  data_mux_out);
   //  nmux2x1#(32) nmux_inst(mtoreg, alures, data_mem_out, data_mux_out);
    
-   // write data to registers how? regfile inst again? or always block?
+
    // 32 bits for left shift?
    nshift  #(32) shifter(imm_out, shift_out);
+  
+  
    // put in adder, rca or full adder? 
-   
-  rca rca_inst( pc_out, shift_out, temp_pc2, overflow);
-assign temp_pc = pc_out + 4; 
+   rca rca_inst( pc_out, shift_out, temp_pc2, overflow);
+
+
+  assign temp_pc = pc_out + 4; 
+  
   // and branch signal and zero flag
-  assign jump = (branch & zero);
+  assign jump = (branch & branch_taken);
+  
   nmux2x1#(32) pc_mux(jump, temp_pc, temp_pc2, result_pc);
  
+
  always @ (*) begin
 case(ledSel)
 2'b00 : led = instr [15:0];
