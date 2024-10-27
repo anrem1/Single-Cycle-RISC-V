@@ -46,7 +46,7 @@ control ctrl( instr[6:2],  branch, mr, mwrite, alusrc, alusrc2, regwr, aluop, mt
   nmux2x1#(32) mux_reg(alusrc, rdata2 , imm_out, B);
   
   // ** put in second added mux for pc and reg
-  mux2x1#(32) mux_gets_pc(alusrc2, pc_out , rdata1, A);     // added alusrc2 as selection
+  nmux2x1#(32) mux_gets_pc(alusrc2, pc_out , rdata1, A);     // added alusrc2 as selection
 
 
   // inst input should be [14:12] and 30?
