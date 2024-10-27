@@ -54,13 +54,13 @@ control ctrl( instr[6:2],  branch, mr, mwrite, alusrc, alusrc2, regwr, aluop, mt
   
   // need to get data from 1st reg in reg file into A
   alu #(32) aluinst(A,  B, alusel, alures, /*zero,*/ cf, zf, vf, sf,
-    inst[24:20], inst[15:13], branch_taken);
+    instr[24:20], instr[15:13], branch_taken);
   
   // put in data mem, divide by 4?
   DataMem data_mem( clk, mr , mwrite, alures[7:2], rdata2, data_mem_out);
   
   // 3x1 MUX after data mem
-  mux4x1 #(32) ( mtoreg, temp_pc, alures, data_mem_out, 32'bX,  data_mux_out);
+  mux4x1 #(32) data_mux ( mtoreg, temp_pc, alures, data_mem_out, 32'bX,  data_mux_out);
   //  nmux2x1#(32) nmux_inst(mtoreg, alures, data_mem_out, data_mux_out);
    
 

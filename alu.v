@@ -5,7 +5,7 @@ module alu #(parameter n = 32)(
     output reg [n-1:0] result,
     // output reg zero,
     output wire cf, zf, vf, sf,
-    input wire [4:0] shamt,
+    input [4:0] shamt,
     input [2:0] funct3,
     output reg branch_taken
 );
@@ -19,7 +19,7 @@ module alu #(parameter n = 32)(
     wire [n-1:0] add, sub, op_b;
     wire [n-1:0] SLT = (A < B) ? 32'b1 : 32'b0;    // Signed comparison for SLT
     wire [n-1:0] SLTU = (A < B) ? 32'b1 : 32'b0;   // Unsigned comparison for SLTU
-
+ 
     // Carry-out and Overflow Detection
     assign {cf, add} = sel == 4'b00_01 ? (A - B) : (A + B);
     assign zf = (result == 0);
@@ -42,22 +42,22 @@ module alu #(parameter n = 32)(
             // LUI: Load Upper Immediate - Upper 20 bits
             default: result = 32'b0;
         endcase
+        end
 
     always @(*) begin
         case (funct3)
-             3'b000:  branch_taken = (rs1 == rs2);                // Equal
-             3'b001:  branch_taken = (rs1 != rs2);                // Not Equal
-             3'b100:  branch_taken = ($signed(rs1) < $signed(rs2)); // Less Than
-             3'b101:  branch_taken = ($signed(rs1) >= $signed(rs2)); // Greater or Equal
-             3'b110: branch_taken = (rs1 < rs2);                 // Less Than Unsigned
-             3'b111: branch_taken = (rs1 >= rs2);                // Greater or Equal Unsigned
+             3'b000:  branch_taken = (A == B);                // Equal
+             3'b001:  branch_taken = (A != B);                // Not Equal
+             3'b100:  branch_taken = ($signed(A) < $signed(B)); // Less Than
+             3'b101:  branch_taken = ($signed(A) >= $signed(B)); // Greater or Equal
+             3'b110: branch_taken = (A < B);                 // Less Than Unsigned
+             3'b111: branch_taken = (A >= B);                // Greater or Equal Unsigned
             default:  branch_taken = 1'b0; // Default case for non-branch instructions
         endcase
     end
 
         // zero = (result == 0);
-    end
-endmodule
+        endmodule
 
 /*
 
