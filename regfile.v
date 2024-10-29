@@ -6,12 +6,11 @@ input wsig, input clk, input rst, input [4:0] radd1 , input [4:0] radd2, input [
     reg [31:0] register [31:0];
   assign    rdata1 = register[radd1];
   assign  rdata2 = register[radd2];
-  
-    always @ (posedge clk) begin
+
+  always @ (posedge clk) begin
 
     if(rst == 0) begin
   
-
     if(wsig == 1 & wadd != 0 ) 
     register[wadd] = wdata;
     
